@@ -5,3 +5,5 @@ __pycache__/
 
 *.html
 !templates/*.html
+!index.html
+!templates/*.html
