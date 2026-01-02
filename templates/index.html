@@ -48,7 +48,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
+        Chart.register(ChartDataLabels);
         let myChart = null;
 
         async function loadDates() {
@@ -143,6 +145,37 @@
                         },
                         tooltip: {
                             position: 'nearest'
+                        },
+                        legend: {
+                            position: 'right',
+                            align: 'start'
+                        },
+                        datalabels: {
+                            align: 'right',
+                            anchor: 'end',
+                            backgroundColor: 'white',
+                            borderRadius: 4,
+                            color: function (context) {
+                                return context.dataset.borderColor;
+                            },
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function (value, context) {
+                                // Only show label on the last data point
+                                if (context.dataIndex === context.dataset.data.length - 1) {
+                                    return context.dataset.label;
+                                }
+                                return null;
+                            },
+                            display: function (context) {
+                                return context.dataIndex === context.dataset.data.length - 1;
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            right: 100 // Add padding for labels
                         }
                     },
                     scales: {
