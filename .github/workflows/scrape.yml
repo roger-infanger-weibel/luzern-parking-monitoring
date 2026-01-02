@@ -31,6 +31,7 @@ jobs:
         run: |
           git config --global user.email "roger@roil.ch"
           git config --global user.name "Roger Infanger Weibel"
+          git add -A
           timestamp=$(date -u)
           git commit -m "Latest data: ${timestamp}" || exit 0
           git push
