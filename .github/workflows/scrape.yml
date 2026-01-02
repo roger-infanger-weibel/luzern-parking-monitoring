@@ -1,0 +1,37 @@
+name: Scrape Parking Data
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron:  '*/15 * * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch data
+        run: python collect_data.py --once
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "From GitHub Actions"
+          git config user.email "roger@roil.ch
+          git add -A
+          timestamp=$(date -u)
+          git commit -m "Latest data: ${timestamp}" || exit 0
+          git push
