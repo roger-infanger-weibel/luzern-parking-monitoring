@@ -113,8 +113,15 @@
                 myChart.destroy();
             }
 
-            // Assign colors dynamically if needed, or let Chart.js auto-assign
-            // We'll let Chart.js auto-color for now, but we could add a palette.
+            // Filter datasets for default visibility
+            const defaultVisible = ["Löwencenter", "City-Parking", "Bahnhofparking"];
+
+            data.datasets.forEach(dataset => {
+                const label = dataset.label || "";
+                // Show if it includes any of the keywords
+                const isVisible = defaultVisible.some(keyword => label.includes(keyword));
+                dataset.hidden = !isVisible;
+            });
 
             myChart = new Chart(ctx, {
                 type: 'line',
