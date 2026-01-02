@@ -121,5 +121,26 @@ def get_data():
         "date": date_str
     })
 
+@app.route('/api/dates')
+def get_dates():
+    # List contents of the 'data' directory in the repo
+    # Expecting a list of directories named YYYY-MM-DD
+    api_url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/data"
+    
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        contents = response.json()
+        
+        # Filter for directories that look like dates
+        dates = [item['name'] for item in contents if item['type'] == 'dir']
+        # Sort descending (newest first)
+        dates.sort(reverse=True)
+        
+        return jsonify(dates)
+    except Exception as e:
+        print(f"Error fetching dates: {e}")
+        return jsonify([])
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
