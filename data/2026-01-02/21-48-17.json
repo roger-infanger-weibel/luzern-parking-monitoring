@@ -1,0 +1,145 @@
+{
+  "status": "success",
+  "data": {
+    "parkings": {
+      "AP02": {
+        "description": "Parkplatz Sportgebäude",
+        "vacancy": 96,
+        "datestamp": "2026-01-02T22:48:04+01:00",
+        "capacity": 97,
+        "maintenance": false,
+        "opened": true
+      },
+      "AP01": {
+        "description": "Parkhaus Sportgebäude",
+        "vacancy": 254,
+        "datestamp": "2026-01-02T22:48:05+01:00",
+        "capacity": 280,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP02": {
+        "description": "Altstadt",
+        "vacancy": 353,
+        "datestamp": "2026-01-02T22:47:26+01:00",
+        "capacity": 456,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP01": {
+        "description": "am Gütsch",
+        "vacancy": 91,
+        "datestamp": "2026-01-02T22:47:55+01:00",
+        "capacity": 100,
+        "maintenance": false,
+        "opened": true
+      },
+      "PKF": {
+        "description": "Parkhaus Flora",
+        "vacancy": 37,
+        "datestamp": "2026-01-02T22:47:47+01:00",
+        "capacity": 65,
+        "maintenance": false,
+        "opened": true
+      },
+      "NP07": {
+        "description": "Schweizerhof",
+        "vacancy": 190,
+        "datestamp": "2026-01-02T22:47:30+01:00",
+        "capacity": 250,
+        "maintenance": false,
+        "opened": true
+      },
+      "NP08": {
+        "description": "Casino-Palace",
+        "vacancy": 80,
+        "datestamp": "2026-01-02T22:47:42+01:00",
+        "capacity": 250,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP06": {
+        "description": "Bahnhofparking P3",
+        "vacancy": 371,
+        "datestamp": "2026-01-02T22:45:38+01:00",
+        "capacity": 447,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP05": {
+        "description": "Bahnhofparking P1+P2",
+        "vacancy": 356,
+        "datestamp": "2026-01-02T22:45:38+01:00",
+        "capacity": 453,
+        "maintenance": false,
+        "opened": true
+      },
+      "NP12": {
+        "description": "Löwencenter",
+        "vacancy": 256,
+        "datestamp": "2026-01-02T22:45:19+01:00",
+        "capacity": 345,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP04": {
+        "description": "Kantonalbank",
+        "vacancy": 181,
+        "datestamp": "2026-01-02T22:46:46+01:00",
+        "capacity": 280,
+        "maintenance": false,
+        "opened": true
+      },
+      "NP11": {
+        "description": "City-Parking",
+        "vacancy": 391,
+        "datestamp": "2026-01-02T22:46:12+01:00",
+        "capacity": 450,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP03": {
+        "description": "Kesselturm",
+        "vacancy": 253,
+        "datestamp": "2026-01-02T22:45:20+01:00",
+        "capacity": 340,
+        "maintenance": false,
+        "opened": true
+      },
+      "NP13": {
+        "description": "Nationalhof",
+        "vacancy": 202,
+        "datestamp": "2026-01-02T22:47:11+01:00",
+        "capacity": 220,
+        "maintenance": false,
+        "opened": true
+      },
+      "SP09": {
+        "description": "Hirzenmatt",
+        "vacancy": 34,
+        "datestamp": "2026-01-02T22:48:04+01:00",
+        "capacity": 53,
+        "maintenance": false,
+        "opened": true
+      }
+    },
+    "groups": {
+      "north": {
+        "description": "Parkhäuser NORD",
+        "vacancy": 1119,
+        "capacity": 1515
+      },
+      "messe": {
+        "description": "Allmend / Messe",
+        "vacancy": 350,
+        "capacity": 377
+      },
+      "south": {
+        "description": "Parkhäuser SÜD",
+        "vacancy": 1639,
+        "capacity": 2129
+      }
+    },
+    "time": "2026-01-02T22:48:17+01:00"
+  }
+}
