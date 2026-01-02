@@ -29,9 +29,8 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          git config user.name "From GitHub Actions"
-          git config user.email "roger@roil.ch
-          git add -A
+          git config --global user.email "roger@roil.ch"
+          git config --global user.name "Roger Infanger Weibel"
           timestamp=$(date -u)
           git commit -m "Latest data: ${timestamp}" || exit 0
           git push
