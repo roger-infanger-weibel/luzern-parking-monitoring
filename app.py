@@ -2,13 +2,29 @@ from flask import Flask, render_template, jsonify, request
 import os
 import json
 from datetime import datetime
+import requests
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+# No longer strictly relying on local DATA_DIR for visualization
+REPO_OWNER = "roger-infanger-weibel"
+REPO_NAME = "luzern-parking-monitoring"
+GITHUB_API_BASE = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/contents/data"
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+def fetch_file_content(url):
+    try:
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json() 
+            # Note: GitHub raw content might be text, but since we are fetching download_url 
+            # from the directory listing which points to raw user content, requests.json() works if file is json.
+    except Exception as e:
+        print(f"Error fetching {url}: {e}")
+    return None
 
 @app.route('/api/data')
 def get_data():
@@ -16,62 +32,79 @@ def get_data():
     if not date_str:
         date_str = datetime.now().strftime("%Y-%m-%d")
 
-    day_dir = os.path.join(DATA_DIR, date_str)
+    # 1. Get list of files for the date from GitHub API
+    api_url = f"{GITHUB_API_BASE}/{date_str}"
+    print(f"Fetching file list from: {api_url}")
     
-    if not os.path.exists(day_dir):
-        return jsonify({"error": "No data found for this date", "datasets": []})
+    try:
+        response = requests.get(api_url)
+        if response.status_code == 404:
+             return jsonify({"error": "No data found for this date (on GitHub)", "datasets": []})
+        response.raise_for_status()
+        files = response.json()
+    except requests.RequestException as e:
+        return jsonify({"error": f"GitHub API Error: {str(e)}", "datasets": []})
 
-    files = sorted([f for f in os.listdir(day_dir) if f.endswith(".json")])
+    # Filter for .json files and get their download URLs
+    # GitHub API returns a list of dictionaries with 'name', 'download_url', etc.
+    json_file_urls = [f['download_url'] for f in files if f['name'].endswith('.json')]
     
-    # Structure: time -> {parking_id: vacancy}
     timeline = []
-    
-    # We need to know all possible parking IDs to initialize datasets
     all_parking_ids = set()
-    parking_details = {} # id -> description
+    parking_details = {} 
 
-    for filename in files:
-        filepath = os.path.join(day_dir, filename)
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                content = json.load(f)
-                
-                # Extract timestamp from filename or content.
-                # Filename is HH-MM-SS.json. Let's use that for simplicity as it's the capture time.
-                time_part = filename.replace(".json", "").replace("-", ":")
-                
-                snapshot = {
-                    "time": time_part,
-                    "data": {}
-                }
-
-                if "data" in content and "parkings" in content["data"]:
-                    parkings = content["data"]["parkings"]
-                    for pid, pdata in parkings.items():
-                        vacancy = pdata.get("vacancy", 0)
-                        snapshot["data"][pid] = vacancy
-                        all_parking_ids.add(pid)
-                        if pid not in parking_details:
-                            parking_details[pid] = pdata.get("description", pid)
-                
-                timeline.append(snapshot)
-
-        except Exception as e:
-            print(f"Error reading {filename}: {e}")
+    # 2. Fetch all files in parallel
+    print(f"Found {len(json_file_urls)} files. Fetching content...")
+    
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = executor.map(fetch_file_content, json_file_urls)
+        
+    for content in results:
+        if not content:
             continue
+            
+        try:
+             # Extract time from 'time' field in json or assume it came from filename (not passed here easily without tuple map)
+             # The JSON content has "time": "2026-01-02T08:06:57+01:00"
+             # Let's parse that.
+             
+            timestamp_str = content.get("data", {}).get("time")
+            if not timestamp_str:
+                 continue
+                 
+            # Format time for display (HH:MM)
+            dt = datetime.fromisoformat(timestamp_str)
+            time_part = dt.strftime("%H:%M")
+             
+            snapshot = {
+                "time": time_part,
+                "data": {},
+                "original_dt": dt # Store for sorting
+            }
+
+            if "data" in content and "parkings" in content["data"]:
+                parkings = content["data"]["parkings"]
+                for pid, pdata in parkings.items():
+                    vacancy = pdata.get("vacancy", 0)
+                    snapshot["data"][pid] = vacancy
+                    all_parking_ids.add(pid)
+                    if pid not in parking_details:
+                        parking_details[pid] = pdata.get("description", pid)
+            
+            timeline.append(snapshot)
+        except Exception as e:
+            print(f"Error parsing content: {e}")
+
+    # Sort timeline by time
+    timeline.sort(key=lambda x: x["original_dt"])
 
     # Format for Chart.js
-    # labels: [t1, t2, t3...]
-    # datasets: [{label: 'Parking A', data: [v1, v2, v3...]}, ...]
-    
     labels = [t["time"] for t in timeline]
     datasets = []
     
     for pid in sorted(list(all_parking_ids)):
         data_points = []
         for point in timeline:
-            # If a data point is missing for this timestamp, we can append None or 0.
-            # Using None allows Chart.js to span gaps or break lines depending on config.
             data_points.append(point["data"].get(pid, None))
             
         dataset = {
