@@ -6,7 +6,12 @@ import os
 def generate_large_file(filename, lines=100000):
     with open(filename, 'w') as f:
         for i in range(lines):
-            if i % 100 == 0:
+            if i % 1000 == 0:
+                # TRAP: Matches pattern but has SECTION. Should be excluded by Multiline, counted by others.
+                f.write(f" BAD-SECTION-{i} SECTION. CALL 'TRAP{i}' \n")
+            elif i % 500 == 0:
+                f.write(f" A-SECTION-{i} SECTION. \n")
+            elif i % 100 == 0:
                 f.write(f" CALL 'SUB{i}' \n")
             elif i % 150 == 0:
                 f.write(f" EXEC PGM=PROG{i} \n")
@@ -54,9 +59,19 @@ def scan_combined_text(filepath, combined_pattern):
         count += len(matches)
     return count
 
+# Method 5: Multiline Regex with Exclusion
+def scan_multiline_regex(filepath, multiline_pattern):
+    count = 0
+    with open(filepath, 'r') as f:
+        content = f.read()
+        matches = multiline_pattern.findall(content)
+        count += len(matches)
+    return count
+
 def main():
     test_file = "benchmark_test.txt"
     print("Generating test file...")
+    # Reduced size for faster consistent testing, or keep 500k? 500k is fine.
     generate_large_file(test_file, lines=500000)
     
     # Text patterns
@@ -77,6 +92,17 @@ def main():
         re.IGNORECASE
     )
     
+    # Multiline Pattern with Exclusion
+    # Matches lines that DO NOT contain SECTION. but DO contain CALL or EXEC
+    # (?m) enables multiline mode (^ matches start of line)
+    # ^(?!.*SECTION\.) checks that the line doesn't have SECTION.
+    # .* matches content before the keyword
+    # Then the keyword pattern
+    multiline_pattern = re.compile(
+        r'(?m)^(?!.*SECTION\.).*(?:CALL\s+[\'"](?P<call>[A-Z0-9]+)[\'"]|EXEC\s+PGM=(?P<exec>[A-Z0-9]+))',
+        re.IGNORECASE
+    )
+
     print("Starting benchmark...")
     
     # Measure Whole Content
@@ -103,12 +129,24 @@ def main():
     t4 = time.time() - start_time
     print(f"Whole File (Combined Rx):{t4:.4f}s (matches: {c4})")
     
+    # Measure Multiline Exclusion
+    start_time = time.time()
+    c5 = scan_multiline_regex(test_file, multiline_pattern)
+    t5 = time.time() - start_time
+    print(f"Multiline Regex (Excl):  {t5:.4f}s (matches: {c5})")
+
     print("-" * 30)
-    best_time = min(t1, t2, t3, t4)
-    if best_time == t1: print("Winner: Whole File (Split Regex)")
-    elif best_time == t2: print("Winner: Line-by-Line")
-    elif best_time == t3: print("Winner: Bytes + Mmap")
-    elif best_time == t4: print("Winner: Whole File (Combined Regex)")
+    # We only compare best time, but note that counts might differ if exclusions apply
+    times = {
+        "Whole File (Split Regex)": t1,
+        "Line-by-Line": t2,
+        "Bytes + Mmap": t3,
+        "Whole File (Combined Regex)": t4,
+        "Multiline Regex (Excl)": t5
+    }
+    
+    best_name = min(times, key=times.get)
+    print(f"Winner: {best_name}")
 
     os.remove(test_file)
 
